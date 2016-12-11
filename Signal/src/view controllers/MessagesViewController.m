@@ -126,6 +126,7 @@ typedef enum : NSUInteger {
 @property (nonatomic, readonly) OWSDisappearingMessagesJob *disappearingMessagesJob;
 @property (nonatomic, readonly) TSMessagesManager *messagesManager;
 @property (nonatomic, readonly) TSNetworkManager *networkManager;
+@property (nonatomic, strong) NSIndexPath *selectedPath;
 
 @property NSCache *messageAdapterCache;
 
@@ -332,6 +333,11 @@ typedef enum : NSUInteger {
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(cancelReadTimer)
                                                      name:UIApplicationDidEnterBackgroundNotification
+                                                   object:nil];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(movieWasDismissed)
+                                                     name:MPMoviePlayerDidExitFullscreenNotification
                                                    object:nil];
     } else {
         [[NSNotificationCenter defaultCenter] removeObserver:self
@@ -1151,6 +1157,8 @@ typedef enum : NSUInteger {
 {
     id<OWSMessageData> messageItem = [self messageAtIndexPath:indexPath];
     TSInteraction *interaction = [self interactionAtIndexPath:indexPath];
+    
+    self.selectedPath = indexPath;
 
     switch (messageItem.messageType) {
         case TSOutgoingMessageAdapter: {
@@ -1250,7 +1258,7 @@ typedef enum : NSUInteger {
                                 _videoPlayer.controlStyle   = MPMovieControlStyleDefault;
                                 _videoPlayer.shouldAutoplay = YES;
                                 [self.view addSubview:_videoPlayer.view];
-                                [_videoPlayer setFullscreen:YES animated:YES];
+                                [_videoPlayer setFullscreen:YES animated:NO];
                             }
                         } else if ([messageMedia isAudio]) {
                             if (messageMedia.isAudioPlaying) {
@@ -1384,6 +1392,11 @@ typedef enum : NSUInteger {
 
 - (void)moviePlayBackDidFinish:(id)sender {
     DDLogDebug(@"playback finished");
+}
+
+- (void)movieWasDismissed {
+    [self.collectionView scrollToItemAtIndexPath:self.selectedPath atScrollPosition:UICollectionViewScrollPositionBottom animated:NO];
+    self.selectedPath = nil;
 }
 
 - (void)collectionView:(JSQMessagesCollectionView *)collectionView
