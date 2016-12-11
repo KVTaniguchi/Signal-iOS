@@ -1395,7 +1395,9 @@ typedef enum : NSUInteger {
 }
 
 - (void)movieWasDismissed {
-    [self.collectionView scrollToItemAtIndexPath:self.selectedPath atScrollPosition:UICollectionViewScrollPositionBottom animated:NO];
+    if (self.selectedPath) {
+        [self.collectionView scrollToItemAtIndexPath:self.selectedPath atScrollPosition:UICollectionViewScrollPositionBottom animated:NO];
+    }
     self.selectedPath = nil;
 }
 
